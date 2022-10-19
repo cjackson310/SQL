@@ -1,0 +1,21 @@
+--checking to make sure data uploaded correctly
+
+select *
+from PortfolioProject.dbo.suspensionraterace2021
+
+
+--I’m looking to get school suspension data for the top 3 races in the Hartford School District 
+
+select *
+from PortfolioProject.dbo.suspensionraterace2021
+where Race_Ethnicity = 'White' AND District = 'Hartford School District'
+
+select *
+from PortfolioProject.dbo.suspensionraterace2021
+where Race_Ethnicity = 'Black or African American'  AND District = 'Hartford School District'
+
+select *
+from PortfolioProject.dbo.suspensionraterace2021
+where Race_Ethnicity = 'Hispanic or Latino of any race' AND District = 'Hartford School District'  
+
+
