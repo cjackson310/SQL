@@ -1,0 +1,107 @@
+SELECT *
+FROM [MavenToysDB].[dbo].[sales]  
+
+SELECT *
+FROM [MavenToysDB].[dbo].[products]
+
+SELECT *
+FROM [MavenToysDB].[dbo].[inventory] 
+
+SELECT *
+FROM [MavenToysDB].[dbo].[stores] 
+
+
+
+--Changing data type of 2 columns 
+
+ALTER TABLE [MavenToysDB].[dbo].[products]
+ALTER COLUMN Product_Cost money;  
+
+
+
+--Which product sells the best?
+
+Select s.Units, p.Product_ID, p.Product_Name, p.Product_Price, (p.Product_Price * s.Units) as TotalPrice
+FROM [MavenToysDB].[dbo].[products] p
+JOIN [MavenToysDB].[dbo].[sales] s
+ON p.Product_ID = s.Product_ID  
+WHERE Product_Name = 'Glass Marbles' 
+ORDER BY s.Units DESC 
+
+
+
+--Total Price of Units Sold in 2018
+
+
+Select p.Product_ID, p.Product_Name, p.Product_Price, s.Units, (p.Product_Price * s.Units) as TotalPrice, YEAR([Date]) AS Year
+FROM [MavenToysDB].[dbo].[products] p
+JOIN [MavenToysDB].[dbo].[sales] s
+ON p.Product_ID = s.Product_ID  
+WHERE [Date] = '2018'
+ORDER BY s.Units DESC, TotalPrice, p.Product_ID 
+
+
+
+
+--Which products were sold the least units in 2018?
+
+
+Select p.Product_ID, p.Product_Name, p.Product_Price, s.Units, (p.Product_Price * s.Units) as TotalPrice, YEAR([Date]) AS Year
+FROM [MavenToysDB].[dbo].[products] p
+JOIN [MavenToysDB].[dbo].[sales] s
+ON p.Product_ID = s.Product_ID  
+WHERE [Date] = '2018'
+ORDER BY s.Units  
+
+
+
+--Which store sold the most products in 2018?
+
+SELECT s.Product_ID, s.Units, st.Store_ID, st.Store_Name, st.Store_City, s.[Date], YEAR([Date]) AS Year
+FROM [MavenToysDB].[dbo].[sales] s
+JOIN [MavenToysDB].[dbo].[stores] st 
+ON s.Store_ID = st.Store_ID 
+WHERE Date = '2018'
+ORDER BY s.Units DESC 
+
+
+
+--How many new stores have been opened up?
+
+SELECT Store_Open_Date, Store_Name, Store_City, Store_Location
+FROM [MavenToysDB].[dbo].[stores]
+ORDER BY Store_Location 
+
+
+
+
+--Checking the inventory in each store by Product ID
+
+SELECT i.Store_ID, i.Product_ID, i.Stock_On_Hand, st.Store_Name, st.Store_City
+FROM [MavenToysDB].[dbo].[inventory] i
+JOIN [MavenToysDB].[dbo].[stores] st 
+ON i.Store_ID = st.Store_ID
+ORDER BY i.Stock_On_Hand DESC 
+
+
+
+
+--How much can be made by selling the stock on hand
+
+SELECT p.Product_ID, p.Product_Name, i.Stock_On_Hand * p.Product_Price as TotalProdPrice
+FROM [MavenToysDB].[dbo].[inventory] i
+JOIN [MavenToysDB].[dbo].[products] p
+ON i.Product_ID = p.Product_ID 
+
+
+
+--Total cost of stock on hand
+
+SELECT p.Product_ID, p.Product_Name, i.Stock_On_Hand * p.Product_Cost as TotalProdCost
+FROM [MavenToysDB].[dbo].[inventory] i
+JOIN [MavenToysDB].[dbo].[products] p
+ON i.Product_ID = p.Product_ID 
+
+
+
+
