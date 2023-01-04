@@ -1,0 +1,165 @@
+--CREATING A NEW DATABASE
+
+USE master
+GO
+IF NOT EXISTS (
+    SELECT name 
+    FROM sys.databases 
+    WHERE name = N'CorrectionsDB'
+)
+CREATE DATABASE [CorrectionsDB];
+GO 
+IF SERVERPROPERTY('ProductVersion') > '12'
+    ALTER DATABASE [CorrectionsDB] SET QUERY_STORE = ON;
+GO     
+
+
+
+
+SELECT TOP (1000) [Date]
+      ,[Facility_Name]
+      ,[Accused_Other_Status_Count]
+      ,[Sentenced_Status_Count]
+      ,[Total_Facility_Population_Count]
+  FROM [CorrectionsDB].[dbo].[Correctional_Facility_Daily_Population_Count_With_Facility_Date_Filter]
+
+
+
+
+SELECT [Date], Facility_Name, Sentenced_Status_Count,
+CASE 
+    WHEN [Date] > '2022-10-01' THEN 'Fall'
+    WHEN [Date] > '2022-07-01' THEN 'Summer'
+    WHEN [Date] > '2022-04-01' THEN 'Spring'
+    WHEN [Date] > '2022-01-01' THEN 'Winter'
+    ELSE 'Old'
+END     
+FROM [CorrectionsDB].[dbo].[Correctional_Facility_Daily_Population_Count_With_Facility_Date_Filter]
+ORDER BY [Date] DESC 
+
+
+
+--DAILY SENTENCED COUNT FOR CORRIGAN CI FOR 2022
+
+SELECT [Date], Sentenced_Status_Count
+FROM [CorrectionsDB].[dbo].[Correctional_Facility_Daily_Population_Count_With_Facility_Date_Filter]
+WHERE Facility_Name = 'CORRIGAN CI' AND [Date] BETWEEN '2022-01-01' AND '2022-11-30'
+
+
+
+--CREATING A NEW TABLE FOR ONLY DATA FROM 11/2022
+
+SELECT *
+INTO NovemberData
+FROM [CorrectionsDB].[dbo].[Correctional_Facility_Daily_Population_Count_With_Facility_Date_Filter]
+WHERE Date BETWEEN '2022-11-01' AND '2022-11-30'
+
+
+
+
+--TOTAL STATUS COUNTS BY FACILITY
+
+SELECT Facility_Name, SUM(Accused_Other_Status_Count) AS TotalAccusedCount, SUM(Sentenced_Status_Count) AS TotalSentencedCount, 
+    SUM(Total_Facility_Population_Count) AS TotalFacilityCount
+FROM NovemberData
+GROUP BY Facility_Name  
+
+
+
+
+--TOTAL STATUS COUNT BY DATE
+
+SELECT [Date], SUM(Accused_Other_Status_Count) AS TotalAccusedCount, SUM(Sentenced_Status_Count) AS TotalSentencedCount, 
+    SUM(Total_Facility_Population_Count) AS TotalFacilityCount
+FROM NovemberData 
+GROUP BY Date  
+
+
+
+
+--TOTAL STATUS COUNT BY DATE AND FACILITY NAME
+
+SELECT [Date], SUM(Accused_Other_Status_Count) AS TotalAccusedCount, SUM(Sentenced_Status_Count) AS TotalSentencedCount, 
+    SUM(Total_Facility_Population_Count) AS TotalFacilityCount, Facility_Name
+FROM NovemberData 
+GROUP BY Date, Facility_Name
+
+
+
+--CREATING A NEW TABLE FOR ONLY DATA FROM 10/2022
+
+SELECT *
+INTO OctoberData
+FROM [CorrectionsDB].[dbo].[Correctional_Facility_Daily_Population_Count_With_Facility_Date_Filter]
+WHERE Date BETWEEN '2022-10-01' AND '2022-10-31'
+
+
+--MAXIMUM FACILITY POPULATION COUNT BY FACILITY
+
+SELECT Facility_Name, MAX(Total_Facility_Population_Count) AS MaxFacilityPopCount 
+FROM OctoberData
+GROUP BY Facility_Name 
+
+
+
+--MINIMUM FACILITY POPULATION COUNT BY FACILITY
+
+SELECT Facility_Name, MIN(Total_Facility_Population_Count) AS MinFacilityPopCount 
+FROM OctoberData
+GROUP BY Facility_Name 
+
+
+
+--JOINING TABLES
+
+SELECT n.*, o.*
+FROM NovemberData n
+JOIN OctoberData o
+ON n.Facility_Name = o.Facility_Name 
+
+
+
+--TOTAL POP. COUNT FOR OCTOBER AND NOVEMBER BY FACILITY 
+
+SELECT n.Facility_Name, SUM(n.Total_Facility_Population_Count) + SUM(o.Total_Facility_Population_Count) AS TotalCount
+FROM NovemberData n 
+JOIN OctoberData o 
+ON n.Facility_Name = o.Facility_Name 
+GROUP BY n.Facility_Name  
+
+
+
+--TOTAL FACILITY COUNT FOR CORRIGAN CI FOR OCT AND NOV
+
+SELECT n.Facility_Name, SUM(n.Total_Facility_Population_Count) + SUM(o.Total_Facility_Population_Count) AS TotalCount
+FROM NovemberData n 
+JOIN OctoberData o 
+ON n.Facility_Name = o.Facility_Name 
+WHERE n.Facility_Name = 'CORRIGAN CI'
+GROUP BY n.Facility_Name   
+
+
+--TOTAL SENTENCED STATUS FOR CORRIGAN CI FOR OCT AND NOV 
+
+SELECT n.Facility_Name, SUM(n.Sentenced_Status_Count) + SUM(o.Sentenced_Status_Count) AS TotalSentencedCount
+FROM NovemberData n 
+JOIN OctoberData o 
+ON n.Facility_Name = o.Facility_Name 
+WHERE n.Facility_Name = 'CORRIGAN CI'
+GROUP BY n.Facility_Name   
+
+
+
+--TOTAL ACCUSED COUNT FOR CORRIGAN CI FOR OCT AND NOV
+
+SELECT n.Facility_Name, SUM(n.Accused_Other_Status_Count) + SUM(o.Accused_Other_Status_Count) AS TotalAccusedCount
+FROM NovemberData n 
+JOIN OctoberData o 
+ON n.Facility_Name = o.Facility_Name 
+WHERE n.Facility_Name = 'CORRIGAN CI'
+GROUP BY n.Facility_Name   
+
+
+
+
+
